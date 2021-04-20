@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f48ed701-6e4a-4637-8982-d424e9b95a12" >
+		<http:listener-connection host="localhost" port="8082" />
+	</http:listener-config>
+	<flow name="choiceFlow" doc:id="5dad54b1-128c-4800-bb28-4b73ed274834" >
+		<http:listener doc:name="Listener" doc:id="cc474088-2b62-4737-9955-34de504cd171" config-ref="HTTP_Listener_config" path="/choice/{op}"/>
+		<choice doc:name="Choice" doc:id="0290b646-9851-4f0e-9f50-b1767c9358c4" >
+			<when expression='#[attributes.uriParams.op == "add"]'>
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;result: (attributes.queryParams.n1 default 0) as Number + (attributes.queryParams.n2 default 0) as Number&#10;}]" doc:name="Set Payload" doc:id="443baa15-f918-4a7d-bab5-b1abd7304ddb" />
+				<logger level="INFO" doc:name="Logger" doc:id="ce7bd724-e5f4-476a-881a-b9738a561a98" message="#[payload]"/>
+			</when>
+			<when expression='#[attributes.uriParams.op == "sub"]'>
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;result: (attributes.queryParams.n1 default 0) as Number - (attributes.queryParams.n2 default 0) as Number&#10;}]" doc:name="Set Payload" doc:id="622473a8-ad3d-4950-8918-6eacf7f0bde8" />
+				<logger level="INFO" doc:name="Logger" doc:id="aed90dfb-41b4-4f1d-b338-2abc94f97b89" message="#[payload]"/>
+			</when>
+			<when expression='#[attributes.uriParams.op=="division"]'>
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	result:(attributes.queryParams.n1 default 0)as Number /(attributes.queryParams.n2 default 0)as Number&#10;}]" doc:name="Set Payload" doc:id="0b6570ea-636e-45f3-ac39-27a6b10d3ec9" />
+				<logger level="INFO" doc:name="Logger" doc:id="c8536bce-ae3b-4915-ace2-93b3d0cc2e51" message="#[payload]"/>
+			</when>
+			<otherwise >
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;message:"invalid operation"&#10;}]' doc:name="Set Payload" doc:id="4199e392-1c64-455f-a221-9fe218063fdd" />
+				<logger level="INFO" doc:name="Logger" doc:id="d2cf2068-b87d-44c8-b4e3-976af958d315" message="#[payload]"/>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
